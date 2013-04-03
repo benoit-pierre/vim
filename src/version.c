@@ -87,6 +87,7 @@ static char *(features[]) =
 #else
 	"-balloon_eval",
 #endif
+	"+bpierre",
 #ifdef FEAT_BROWSE
 	"+browse",
 #else
