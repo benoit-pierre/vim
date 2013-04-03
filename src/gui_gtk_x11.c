@@ -226,6 +226,9 @@ const special_keys[] =
     {SunXK_F36,		'F', 'Q'},
     {SunXK_F37,		'F', 'R'},
 #endif
+#ifdef SunXK_Paste
+    {SunXK_Paste,	'F', 'S'},
+#endif
     {GDK_Help,		'%', '1'},
     {GDK_Undo,		'&', '8'},
     {GDK_BackSpace,	'k', 'b'},

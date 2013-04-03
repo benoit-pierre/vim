@@ -217,6 +217,9 @@ static struct specialkey
     {SunXK_F36,		'F', 'Q'},
     {SunXK_F37,		'F', 'R'},
 #endif
+#ifdef SunXK_Paste
+    {SunXK_Paste,	'F', 'S'},
+#endif
 
     {XK_Help,		'%', '1'},
     {XK_Undo,		'&', '8'},
