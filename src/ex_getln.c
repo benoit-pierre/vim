@@ -4455,7 +4455,9 @@ set_cmd_context(xp, str, len, col)
     else if (ccline.input_fn)
     {
 	xp->xp_context = ccline.xp_context;
-	xp->xp_pattern = ccline.cmdbuff;
+	xp->xp_pattern = ccline.cmdbuff + ccline.cmdpos;
+        while (xp->xp_pattern > ccline.cmdbuff && !vim_isspace(xp->xp_pattern[-1]))
+            --xp->xp_pattern;
 # if defined(FEAT_USR_CMDS) && defined(FEAT_CMDL_COMPL)
 	xp->xp_arg = ccline.xp_arg;
 # endif
