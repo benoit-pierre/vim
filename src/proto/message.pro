@@ -42,6 +42,7 @@ void msg_puts_title __ARGS((char_u *s));
 void msg_puts_long_attr __ARGS((char_u *longstr, int attr));
 void msg_puts_long_len_attr __ARGS((char_u *longstr, int len, int attr));
 void msg_puts_attr __ARGS((char_u *s, int attr));
+void msg_puts_attr_len __ARGS((char_u *str, int maxlen, int attr));
 void may_clear_sb_text __ARGS((void));
 void clear_sb_text __ARGS((void));
 void show_sb_text __ARGS((void));

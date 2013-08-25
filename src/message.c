@@ -28,7 +28,6 @@ static void msg_home_replace_attr __ARGS((char_u *fname, int attr));
 #ifdef FEAT_MBYTE
 static char_u *screen_puts_mbyte __ARGS((char_u *s, int l, int attr));
 #endif
-static void msg_puts_attr_len __ARGS((char_u *str, int maxlen, int attr));
 static void msg_puts_display __ARGS((char_u *str, int maxlen, int attr, int recurse));
 static void msg_scroll_up __ARGS((void));
 static void inc_msg_scrolled __ARGS((void));
@@ -1896,7 +1895,7 @@ msg_puts_attr(s, attr)
  * When "maxlen" is -1 there is no maximum length.
  * When "maxlen" is >= 0 the message is not put in the history.
  */
-    static void
+    void
 msg_puts_attr_len(str, maxlen, attr)
     char_u	*str;
     int		maxlen;
