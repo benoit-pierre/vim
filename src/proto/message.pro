@@ -36,7 +36,7 @@ int msg_outtrans_special __ARGS((char_u *strstart, int from));
 char_u *str2special_save __ARGS((char_u *str, int is_lhs));
 char_u *str2special __ARGS((char_u **sp, int from));
 void str2specialbuf __ARGS((char_u *sp, char_u *buf, int len));
-void msg_prt_line __ARGS((char_u *s, int list));
+void msg_prt_line __ARGS((char_u *s, int list, int line_num_for_syntax));
 void msg_puts __ARGS((char_u *s));
 void msg_puts_title __ARGS((char_u *s));
 void msg_puts_long_attr __ARGS((char_u *longstr, int attr));

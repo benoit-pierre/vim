@@ -5576,7 +5576,7 @@ show_pat_in_path(line, type, did_show, action, fp, lnum, count)
 	    msg_puts_attr(IObuff, hl_attr(HLF_N));
 	    MSG_PUTS(" ");
 	}
-	msg_prt_line(line, FALSE);
+	msg_prt_line(line, FALSE, -1);
 	out_flush();			/* show one line at a time */
 
 	/* Definition continues until line that doesn't end with '\' */

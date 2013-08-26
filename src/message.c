@@ -1647,23 +1647,44 @@ str2specialbuf(sp, buf, len)
 
 /*
  * print line for :print or :list command
+ *
+ * Note: if s is NULL, the line_num line from the current buffer is used,
+ * and we do syntax highlighting if applicable.
  */
     void
-msg_prt_line(s, list)
+msg_prt_line(s, list, line_num)
     char_u	*s;
     int		list;
+    int		line_num;
 {
     int		c;
-    int		col = 0;
+    int		col = 0;	/* output column */
+    int		line_col = 0;	/* column in line */
     int		n_extra = 0;
     int		c_extra = 0;
     char_u	*p_extra = NULL;	    /* init to make SASC shut up */
     int		n;
     int		attr = 0;
     char_u	*trail = NULL;
+    char_u	*line = NULL;
 #ifdef FEAT_MBYTE
     int		l;
     char_u	buf[MB_MAXBYTES + 1];
+#endif
+#ifdef FEAT_SYN_HL
+    int		do_syntax;
+    int		syn_id;
+#endif
+
+    if (!s)
+    {
+	s = line = ml_get(line_num);
+    }
+
+#ifdef FEAT_SYN_HL
+    /* Note: no point in slowing down the code with syntax highlighting if
+     * we're not going to see it (i.e. printf is used). */
+    do_syntax = line && syntax_present(curwin) && !msg_use_printf();
 #endif
 
     if (curwin->w_p_list)
@@ -1686,11 +1707,14 @@ msg_prt_line(s, list)
     {
 	if (n_extra > 0)
 	{
+	    if (NULL != p_extra)
+	    {
+		msg_puts_attr_len(p_extra, n_extra, attr);
+		n_extra = 0;
+		continue;
+	    }
 	    --n_extra;
-	    if (c_extra)
-		c = c_extra;
-	    else
-		c = *p_extra++;
+	    c = c_extra;
 	}
 #ifdef FEAT_MBYTE
 	else if (has_mbyte && (l = (*mb_ptr2len)(s)) > 1)
@@ -1700,16 +1724,28 @@ msg_prt_line(s, list)
 		    && (mb_ptr2char(s) == 160
 			|| mb_ptr2char(s) == 0x202f))
 	    {
-		mb_char2bytes(lcs_nbsp, buf);
-		buf[(*mb_ptr2len)(buf)] = NUL;
+		attr = hl_attr(HLF_8);
+		n_extra = mb_char2bytes(lcs_nbsp, buf);
+		p_extra = buf;
+		c_extra = NUL;
 	    }
 	    else
 	    {
-		mch_memmove(buf, s, (size_t)l);
-		buf[l] = NUL;
+		attr = 0;
+#ifdef FEAT_SYN_HL
+		if (do_syntax)
+		{
+		    syn_id = syn_get_id(curwin, line_num, line_col, 1, NULL, FALSE);
+		    if (syn_id > 0)
+			attr = syn_id2attr(syn_id);
+		}
+#endif
+		n_extra = l;
+		p_extra = s;
+		c_extra = NUL;
 	    }
-	    msg_puts(buf);
 	    s += l;
+	    line_col += l;
 	    continue;
 	}
 #endif
@@ -1721,6 +1757,7 @@ msg_prt_line(s, list)
 	    {
 		/* tab amount depends on current column */
 		n_extra = curbuf->b_p_ts - col % curbuf->b_p_ts - 1;
+		p_extra = NULL;
 		if (!list)
 		{
 		    c = ' ';
@@ -1740,12 +1777,12 @@ msg_prt_line(s, list)
 	    }
 	    else if (c == NUL && list && lcs_eol != NUL)
 	    {
-		p_extra = (char_u *)"";
+		/* Trigger a loop break on next iteration. */
+		p_extra = NULL;
 		c_extra = NUL;
 		n_extra = 1;
 		c = lcs_eol;
 		attr = hl_attr(HLF_AT);
-		--s;
 	    }
 	    else if (c != NUL && (n = byte2cells(c)) > 1)
 	    {
@@ -1767,6 +1804,15 @@ msg_prt_line(s, list)
 		c = lcs_space;
 		attr = hl_attr(HLF_8);
 	    }
+#ifdef FEAT_SYN_HL
+	    else if (do_syntax)
+	    {
+		syn_id = syn_get_id(curwin, line_num, line_col, 1, NULL, FALSE);
+		if (syn_id > 0)
+		    attr = syn_id2attr(syn_id);
+	    }
+#endif
+	    ++line_col;
 	}
 
 	if (c == NUL)

@@ -22462,7 +22462,7 @@ ex_function(eap)
 			msg_putchar(' ');
 		    if (j < 99)
 			msg_putchar(' ');
-		    msg_prt_line(FUNCLINE(fp, j), FALSE);
+		    msg_prt_line(FUNCLINE(fp, j), FALSE, -1);
 		    out_flush();	/* show a line at a time */
 		    ui_breakcheck();
 		}

@@ -2048,7 +2048,7 @@ qf_list(eap)
 	    qf_fmt_text((fname != NULL || qfp->qf_lnum != 0)
 				     ? skipwhite(qfp->qf_text) : qfp->qf_text,
 							      IObuff, IOSIZE);
-	    msg_prt_line(IObuff, FALSE);
+	    msg_prt_line(IObuff, FALSE, -1);
 	    out_flush();		/* show one line at a time */
 	}
 
