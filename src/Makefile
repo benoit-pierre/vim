@@ -2497,7 +2497,7 @@ depend:
 	cp Makefile Makefile~
 	sed -e '/\#\#\# Dependencies/q' < Makefile > tmp_make
 	-for i in $(ALL_SRC); do echo $$i; \
-		$(CPP_DEPEND) $$i | \
+		$(patsubst -I/usr/%,-isystem /usr/%,$(CPP_DEPEND)) $$i | \
 		sed -e 's+^\([^ ]*\.o\)+objects/\1+' >> tmp_make; done
 	mv tmp_make Makefile
 
