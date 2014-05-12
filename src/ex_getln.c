@@ -1127,8 +1127,8 @@ getcmdline(firstc, count, indent)
 	case ESC:	/* get here if p_wc != ESC or when ESC typed twice */
 	case Ctrl_C:
 		/* In exmode it doesn't make sense to return.  Except when
-		 * ":normal" runs out of characters. */
-		if (exmode_active
+		 * ":normal" runs out of characters or called from input(). */
+		if (exmode_active && firstc != '@'
 #ifdef FEAT_EX_EXTRA
 			&& (ex_normal_busy == 0 || typebuf.tb_len > 0)
 #endif
