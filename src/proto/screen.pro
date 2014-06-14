@@ -53,4 +53,14 @@ void showruler __ARGS((int always));
 int number_width __ARGS((win_T *wp));
 int screen_screencol __ARGS((void));
 int screen_screenrow __ARGS((void));
+#ifdef FEAT_SEARCH_EXTRA
+# define SEARCH_HL_PRIORITY 0
+extern match_T search_hl;	/* used for 'hlsearch' highlight matching */
+void start_search_hl __ARGS((void));
+void end_search_hl __ARGS((void));
+void init_search_hl __ARGS((win_T *wp));
+void prepare_search_hl __ARGS((win_T *wp, linenr_T lnum));
+void next_search_hl __ARGS((win_T *win, match_T *shl, linenr_T lnum, colnr_T mincol, matchitem_T *cur));
+int next_search_hl_pos __ARGS((match_T *shl, linenr_T lnum, posmatch_T *pos, colnr_T mincol));
+#endif
 /* vim: set ft=c : */

@@ -104,7 +104,7 @@ static int	screen_attr = 0;
 static int	screen_cur_row, screen_cur_col;	/* last known cursor position */
 
 #ifdef FEAT_SEARCH_EXTRA
-static match_T search_hl;	/* used for 'hlsearch' highlight matching */
+match_T search_hl;	/* used for 'hlsearch' highlight matching */
 #endif
 
 #ifdef FEAT_FOLDING
@@ -138,15 +138,6 @@ static void draw_vsep_win __ARGS((win_T *wp, int row));
 #endif
 #ifdef FEAT_STL_OPT
 static void redraw_custom_statusline __ARGS((win_T *wp));
-#endif
-#ifdef FEAT_SEARCH_EXTRA
-# define SEARCH_HL_PRIORITY 0
-static void start_search_hl __ARGS((void));
-static void end_search_hl __ARGS((void));
-static void init_search_hl __ARGS((win_T *wp));
-static void prepare_search_hl __ARGS((win_T *wp, linenr_T lnum));
-static void next_search_hl __ARGS((win_T *win, match_T *shl, linenr_T lnum, colnr_T mincol, matchitem_T *cur));
-static int next_search_hl_pos __ARGS((match_T *shl, linenr_T lnum, posmatch_T *pos, colnr_T mincol));
 #endif
 static void screen_start_highlight __ARGS((int attr));
 static void screen_char __ARGS((unsigned off, int row, int col));
@@ -7487,7 +7478,7 @@ screen_puts_len(text, textlen, row, col, attr)
 /*
  * Prepare for 'hlsearch' highlighting.
  */
-    static void
+    void
 start_search_hl()
 {
     if (p_hls && !no_hlsearch)
@@ -7504,7 +7495,7 @@ start_search_hl()
 /*
  * Clean up for 'hlsearch' highlighting.
  */
-    static void
+    void
 end_search_hl()
 {
     if (search_hl.rm.regprog != NULL)
@@ -7517,7 +7508,7 @@ end_search_hl()
 /*
  * Init for calling prepare_search_hl().
  */
-    static void
+    void
 init_search_hl(wp)
     win_T	*wp;
 {
@@ -7551,7 +7542,7 @@ init_search_hl(wp)
 /*
  * Advance to the match in window "wp" line "lnum" or past it.
  */
-    static void
+    void
 prepare_search_hl(wp, lnum)
     win_T	*wp;
     linenr_T	lnum;
@@ -7633,7 +7624,7 @@ prepare_search_hl(wp, lnum)
  * shl->lnum is zero.
  * Careful: Any pointers for buffer lines will become invalid.
  */
-    static void
+    void
 next_search_hl(win, shl, lnum, mincol, cur)
     win_T	    *win;
     match_T	    *shl;	/* points to search_hl or a match */
@@ -7763,7 +7754,7 @@ next_search_hl(win, shl, lnum, mincol, cur)
     }
 }
 
-    static int
+    int
 next_search_hl_pos(shl, lnum, posmatch, mincol)
     match_T	    *shl;	/* points to a match */
     linenr_T	    lnum;
