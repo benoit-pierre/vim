@@ -1671,6 +1671,14 @@ msg_prt_line(s, list, line_num)
     int		l;
     char_u	buf[MB_MAXBYTES + 1];
 #endif
+#ifdef FEAT_SEARCH_EXTRA
+    int		do_search;
+    matchitem_T *cur;			/* points to the match list */
+    match_T	*shl;			/* points to search_hl or a match */
+    int		shl_flag;		/* flag to indicate whether search_hl
+					   has been processed or not */
+    int		search_attr = 0;	/* attributes desired by 'hlsearch' */
+#endif
 #ifdef FEAT_SYN_HL
     int		do_syntax;
     int		syn_id;
@@ -1682,9 +1690,35 @@ msg_prt_line(s, list, line_num)
     }
 
 #ifdef FEAT_SYN_HL
-    /* Note: no point in slowing down the code with syntax highlighting if
-     * we're not going to see it (i.e. printf is used). */
-    do_syntax = line && syntax_present(curwin) && !msg_use_printf();
+    do_syntax = line && syntax_present(curwin);
+#endif
+
+#ifdef FEAT_SEARCH_EXTRA
+    do_search = !!line;
+#endif
+
+#if defined(FEAT_SYN_HL) || defined(FEAT_SEARCH_EXTRA)
+    /* Note: no point in slowing down the code with search/syntax highlighting
+     * if we're not going to see it (i.e. printf is used).
+     */
+    if (!msg_use_printf)
+    {
+# ifdef FEAT_SYN_HL
+	do_syntax = 0;
+# endif
+# ifdef FEAT_SEARCH_EXTRA
+	do_search = 0;
+# endif
+    }
+#endif
+
+#ifdef FEAT_SEARCH_EXTRA
+    if (do_search)
+    {
+	init_search_hl(curwin);
+	start_search_hl();
+	prepare_search_hl(curwin, line_num);
+    }
 #endif
 
     if (curwin->w_p_list)
@@ -1705,6 +1739,87 @@ msg_prt_line(s, list, line_num)
 
     while (!got_int)
     {
+#ifdef FEAT_SEARCH_EXTRA
+	search_attr = 0;
+
+	if (do_search && !n_extra)
+	{
+	    cur = curwin->w_match_head;
+	    shl_flag = FALSE;
+	    while (cur != NULL || shl_flag == FALSE)
+	    {
+		if (shl_flag == FALSE)
+		{
+		    shl = &search_hl;
+		    shl_flag = TRUE;
+		}
+		else
+		    shl = &cur->hl;
+		shl->startcol = MAXCOL;
+		shl->endcol = MAXCOL;
+		shl->attr_cur = 0;
+		if (shl->rm.regprog != NULL)
+		{
+		    long v = (long)(s - line);
+		    /* fprintf(stderr, "next_search_hl2(%ld, %d)\n", line_num, (colnr_T)v); */
+		    next_search_hl(curwin, shl, line_num, (colnr_T)v, cur);
+
+		    /* Need to get the line again, a multi-line regexp may have made it
+		     * invalid. */
+		    line = ml_get(line_num);
+		    s = line + v;
+
+		    if (shl->lnum != 0 && shl->lnum <= line_num)
+		    {
+			if (shl->lnum == line_num)
+			    shl->startcol = shl->rm.startpos[0].col;
+			else
+			    shl->startcol = 0;
+			if (line_num == shl->lnum + shl->rm.endpos[0].lnum
+			    - shl->rm.startpos[0].lnum)
+			    shl->endcol = shl->rm.endpos[0].col;
+			else
+			    shl->endcol = MAXCOL;
+			/* Highlight one character for an empty match. */
+			if (shl->startcol == shl->endcol)
+			{
+#ifdef FEAT_MBYTE
+			    if (has_mbyte && line[shl->endcol] != NUL)
+				shl->endcol += (*mb_ptr2len)(line + shl->endcol);
+			    else
+#endif
+				++shl->endcol;
+			}
+		    }
+		}
+		if (shl != &search_hl && cur != NULL)
+		    cur = cur->next;
+	    }
+
+	    /* Use attributes from match with highest priority among
+	     * 'search_hl' and the match list. */
+	    cur = curwin->w_match_head;
+	    shl_flag = FALSE;
+	    while (cur != NULL || shl_flag == FALSE)
+	    {
+		if (shl_flag == FALSE
+		    && ((cur != NULL
+			 && cur->priority > SEARCH_HL_PRIORITY)
+			|| cur == NULL))
+		{
+		    shl = &search_hl;
+		    shl_flag = TRUE;
+		}
+		else
+		    shl = &cur->hl;
+		/* fprintf(stderr, "shl: %ld-%ld:%d-%d[%d]\n", shl->first_lnum, shl->lnum, shl->startcol, shl->endcol, shl->attr); */
+		if (shl->startcol <= line_col && line_col < shl->endcol)
+		    search_attr = shl->attr;
+		if (shl != &search_hl && cur != NULL)
+		    cur = cur->next;
+	    }
+	}
+#endif
 	if (n_extra > 0)
 	{
 	    if (NULL != p_extra)
@@ -1818,10 +1933,22 @@ msg_prt_line(s, list, line_num)
 	if (c == NUL)
 	    break;
 
+#ifdef FEAT_SEARCH_EXTRA
+	if (0 != search_attr)
+	    attr = search_attr;
+#endif
+
 	msg_putchar_attr(c, attr);
 	col++;
     }
     msg_clr_eos();
+
+#ifdef FEAT_SEARCH_EXTRA
+    if (do_search)
+    {
+	end_search_hl();
+    }
+#endif
 }
 
 #ifdef FEAT_MBYTE
